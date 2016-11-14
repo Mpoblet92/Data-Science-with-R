@@ -1,0 +1,143 @@
+---
+title: "ProjectV_Poblet"
+author: "Marcel Poblet"
+date: "November 8, 2016"
+output: html_document
+---
+
+```{r echo=FALSE, results="hide", warning=FALSE, message=FALSE}
+library("ggplot2")
+library("dplyr")
+data("ToothGrowth")
+
+confFormat <- function(data) {
+  format <- data.frame(data$conf.int[1], data$conf.int[2])
+  colnames(format) <- c("Min", "Max")
+  rownames(format) <- ""
+  return (format)
+}
+
+deciPrecision <- function(x, k) format(round(x, k), nsmall=k)
+```
+
+## Tooth Growth
+
+The data set we are using displays the length of odontoblasts(tooth growth cells) in guinea pigs receiving three different doses of vitamin C in the form of orange juice (OJ) or ascorbic acid (VC).
+
+### Growth by Supplement
+This plot displays the rate of growth through Orange Juice(OJ) and Ascorbic Acid(VC).
+```{r echo=FALSE}
+deliveryMethod <- ggplot(data = ToothGrowth, aes(supp, len)) + geom_boxplot(aes(color = supp), show.legend = FALSE) + labs(x = "Supplement", y = "Length") 
+                  
+deliveryMethod
+```
+
+### Growth by Dose
+This plot displays the rate of growth by dose.
+```{r echo=FALSE}
+doseage <- ggplot(data = ToothGrowth, aes(as.factor(dose), len)) + labs(x = "Dose", y = "Length") + geom_boxplot(aes(color = as.factor(dose)), show.legend = FALSE)
+doseage
+```
+
+### Growth by Supplement and Dose 
+This plot displays the rate of growth by dose for each supplement Orange Juice(OJ) and Ascorbic Acid(VC).
+```{r echo=FALSE}
+doseDelivery <- ggplot(data = ToothGrowth, aes(as.factor(dose),len)) + labs(x = "Dose", y = "Length") + geom_boxplot(aes(color = supp), show.legend = FALSE)  + facet_grid(.~supp)
+doseDelivery
+```
+
+It appears that as the dosage increases, so does the length of the guinea pigs' teeth. It's also evident that larger doses of ascorbic acid have a wider range of effect than the smaller doses.The reverse seems true for orange juice, where the smaller doses have a wider range than the larger doses.
+
+## Confidence Intervals
+Let's separate the data into two separate fields. One for all the guinea pigs who recieved vitamin C through orange juice (guineaOJ) and one for those who received vitamin C through ascorbic acid (guineaVC).
+```{r}
+guineaOJ <- filter(ToothGrowth, supp == "OJ")
+guineaVC <- filter(ToothGrowth, supp == "VC")
+```
+
+### Guinea Pigs on Ascorbic Acid
+We are going to construct a 95% confidence interval for mean amount of growth one could expect for guinea pigs receiving the supplement ascorbic acid in any dosage.
+```{r}
+guineaConfVC <- t.test(guineaVC$len)
+confFormat(guineaConfVC)
+```
+As shown above the 95% confidence interval lies between `r deciPrecision(guineaConfVC$conf.int[1],4)` and `r deciPrecision(guineaConfVC$conf.int[2],4)` for guinea pigs taking any dosage of ascorbic acid. 
+
+### Guinea Pigs On 2mg Dosage of Orange Juice
+Next let's run the same test on guinea pigs taking 2mg of orange juice. 
+```{r}
+guineaTwoOJ <- filter(guineaOJ, as.factor(dose) == 2)
+guineaConfOJ <- t.test(guineaTwoOJ$len)
+confFormat(guineaConfOJ)
+```
+Guinea pigs receiving only 2mg of orange juice had a 95 percent confidence interval between `r deciPrecision(guineaConfOJ$conf.int[1], 4)` and `r deciPrecision(guineaConfOJ$conf.int[2], 4)`.
+
+## Hypothesis Testing
+
+### Orange Juice vs. Ascorbic Acid
+We'll start with testing the difference between the growth of guinea pigs' teeth taking orange juice versus those taking ascorbic acid.
+$H_0 : \mu _{OJ} = \mu _{VC}$ versus $H_a : \mu _{OJ} \ne \mu _{VC}$
+```{r}
+guineaVersus <- t.test(guineaOJ$len, guineaVC$len)
+guineaVersus
+```
+The results of our t-test gives us a t-value of `r deciPrecision(guineaVersus$statistic,4)` and a p-value of `r deciPrecision(guineaVersus$p.value,4)`. This shows that there is not a significance in our standard significance level of .05 and we fail to reject the null hypothesis. We compared the difference in guinea pigs' tooth growth when taking vitamin C in the form of orange juice and ascorbic acid and the results don't show that there is a true difference between them.
+
+### 2mg of OJ vs. 1mg
+Let's take two different dosage levels of orange juice given to the guinea pigs. We will use the 2mg and 1mg dosages.  
+$H_0 : \mu _{1mg} = \mu _{2mg}$ versus $H_a : \mu _{1mg} \lt \mu _{2mg}$  
+First we filter out the .5mg dose from guineaOJ
+```{r}
+guineaOJDose <- filter(guineaOJ, as.factor(dose) != .5)
+```
+The new data frame inlcudes all doses except .5mg. Now we are ready to conduct our t-test.
+```{r}
+guineaOJTest <- t.test(len ~ as.factor(dose), data = guineaOJDose, alternative = "l")
+guineaOJTest
+```
+The results show our t-value being `r deciPrecision(guineaOJTest$statistic,4)` and p-value being `r deciPrecision(guineaOJTest$p.value,4)`. These results are significant at .05 significance and justify our alternative hypothesis and therefore we reject the null hypothesis. The goal was to prove if taking a larger dose of vitamin C in the form of orange juice would increase the growth of guinea pigs' teeth and the results suggest that there is a true difference between guinea pigs taking 1mg of orange juice to those taking 2mg.
+
+### 1mg of VC vs. 2mg
+We will take two different dosage levels of ascorbic acid given to the guinea pigs. The 2mg and 1mg dosages.  
+$H_0 : \mu _{1mg} = \mu _{2mg}$ versus $H_a : \mu _{1mg} \lt \mu _{2mg}$  
+First we filter out the .5mg dose from guineaVC
+```{r}
+guineaVCDose <- filter(guineaVC, as.factor(dose) != .5)
+```
+The new data frame inlcudes all doses except .5mg. Now we are ready to conduct our t-test.
+```{r}
+guineaVCTest <- t.test(len ~ as.factor(dose), data = guineaVCDose, alternative = "l")
+guineaVCTest
+```
+The results shows our t-value of `r deciPrecision(guineaVCTest$statistic,4)` and p-value of `r deciPrecision(guineaVCTest$p.value,8)`. These results are significant and we reject the null hypothesis. The goal was to prove if taking a larger dose of vitamin C in the form of acsorbic acid would increase the growth of guinea pigs' teeth and the results suggest that there is a true difference between guinea pigs taking 1mg of acsorbic acid and those taking 2mg.
+
+### 1mg. of OJ vs. 1mg of VC
+Now we are going to compare the two different supplements using the dosage at 1mg.  
+$H_0 : \mu _{1mg OJ} = \mu _{1mg VC}$ versus $H_a : \mu _{1mg OJ} \ne \mu _{1mg VC}$  
+Let's create some data frames with just 1mg dosage for each supplement.
+```{r}
+guineaOJOne <- filter(guineaOJ, as.factor(dose) == 1)
+guineaVCOne <- filter(guineaVC, as.factor(dose) == 1)
+```
+We can now run a t-test with our data using only 1mg dosages from each supplement.
+```{r}
+guineaOneVersus <- t.test(guineaOJOne$len,guineaVCOne$len)
+guineaOneVersus
+```
+From the results above we can see our t-value is `r deciPrecision(guineaOneVersus$statistic,4)` and p-value is `r deciPrecision(guineaOneVersus$p.value,4)` and the test shows that our results were significant, therefore we reject the null hypothesis. The comparison was done on 1mg dosages of orange juice to 1mg dosages of ascorbic acid and the results suggest that there is a true difference in the supplements given to the guinea pigs.
+
+### 2mg. of OJ vs. 2mg of VC
+We are going to compare the two different supplements using the dosage at 2mg now.  
+$H_0 : \mu _{2mg OJ} = \mu _{2mg VC}$ versus $H_a : \mu _{2mg OJ} \ne \mu _{2mg VC}$  
+Let's create our data frames again, this time with 2mg dosages for each supplement.
+```{r}
+guineaOJTwo <- filter(guineaOJ, as.factor(dose) == 2)
+guineaVCTwo <- filter(guineaVC, as.factor(dose) == 2)
+```
+
+Running t-test on our filtered data frames below.
+```{r}
+guineaTwoVersus <- t.test(guineaOJTwo$len,guineaVCTwo$len)
+guineaTwoVersus
+```
+The results above display our t-value as `r deciPrecision(guineaTwoVersus$statistic,4)` and p-value as `r deciPrecision(guineaTwoVersus$p.value,4)`. The test shows that our results were not significant, and we fail to reject the null hypothesis. We compared the length of guinea pigs' teeth when taking 2mg of orange juice and those taking 2mg of ascorbic acid and the results don't suggest that there is a difference between the populations.

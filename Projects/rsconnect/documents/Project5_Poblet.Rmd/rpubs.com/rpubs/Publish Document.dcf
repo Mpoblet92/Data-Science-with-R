@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/225580/3c3ac83b30c64b3d92b560bba03d4c2f
+bundleId: https://api.rpubs.com/api/v1/document/225580/3c3ac83b30c64b3d92b560bba03d4c2f
+url: http://rpubs.com/Marceljeet/225580/edit
+when: 1478660574.57216

@@ -1,0 +1,51 @@
+NAME:  2004 New Car and Truck Data
+TYPE:  Sample
+SIZE:  425 observations, 19 variables
+
+DESCRIPTIVE ABSTRACT:
+Specifications are given for 425 new vehicles for the 2004 year. The variables recorded include price, measurements 
+relating to the size of the vehicle, and fuel efficiency.
+
+SOURCE:
+_Kiplinger's Personal Finance_, December 2003, vol. 57, no. 12, pp. 104-123, http:/www.kiplinger.com (permission to post on 
+the JSE Web site kindly granted by PARS International Corporation, 102 West 38th Street, New York, NY 10018)
+
+VARIABLE DESCRIPTIONS:
+
+Columns	Variables
+  1- 45	Vehicle Name
+ 47		Sports Car? (1=yes, 0=no)
+ 49		Sport Utility Vehicle? (1=yes, 0=no)
+ 51		Wagon? (1=yes, 0=no)
+ 53		Minivan? (1=yes, 0=no)
+ 55		Pickup? (1=yes, 0=no)
+ 57		All-Wheel Drive? (1=yes, 0=no)
+ 59		Rear-Wheel Drive? (1=yes, 0=no)
+ 61- 66	Suggested Retail Price, what the manufacturer thinks the
+		vehicle is worth, including adequate profit for the
+		automaker and the dealer (U.S. Dollars)
+ 68- 73	Dealer Cost (or "invoice price"), what the dealership pays
+		the manufacturer (U.S. Dollars)
+ 75- 77	Engine Size (liters)
+ 79- 80	Number of Cylinders (=-1 if rotary engine)
+ 82- 84	Horsepower
+ 86- 87	City Miles Per Gallon
+ 89- 90	Highway Miles Per Gallon
+ 92- 95	Weight (Pounds)
+ 97- 99	Wheel Base (inches)
+101-103	Length (inches)
+105-106	Width (inches)
+
+Values are aligned and delimited with blanks.
+Missing values are denoted with *.
+
+
+
+SUBMITTED BY:
+Roger W. Johnson
+Department of Mathematics & Computer Science
+South Dakota School of Mines and Technology
+Rapid City, South Dakota  57701
+
+
+
