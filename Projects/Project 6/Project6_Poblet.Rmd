@@ -8,10 +8,185 @@ output: html_document
 # Iowa House Pricing 
 
 ## About
-We will be taking a look into the different price ranges of houses sold in Ames, Iowa from 2006-2010. Our goal is to predict the selling price of houses during this time period in Ames Iowa. The data was collected by Ames, Iowa Assessors Office.
+We will be taking a look into the different price ranges of houses sold in Ames, Iowa from 2006-2010. Our goal is to find the most significant predictors for the selling price of houses during this time period. We are going to take a step-by-step approach to building the final model by adding and removing predictors until all predictors are significant to the standard of .05. The data was collected by Ames, Iowa Assessors Office.
 
-Lets start by loading the data into a dataframe called "iowaHousing"
+Let's start by loading the data into a dataframe called "iowaHousing", and ensure your working directory is the same as where the ".csv" file was saved to.
 ```{r}
 iowaHousing <- read.csv("IowaHousing.csv")
 ```
-The data consists of 2930 observations and 81 variables. 
+```{r echo=FALSE}
+library(ggplot2)
+```
+
+The data consists of 2930 observations and 81 variables. The IowaHousing.txt file consists of the information about each column in our data frame. Use that to clarify any questions about the columns we use.
+
+## First Model
+
+The first model we will create consists of the overall condition of the house. How well was the home maintained before the sale and was there a direct relation to its final selling price? There should be a direct relation between how well the house has been maintained and its value. A slightly cheaper home may maintain its value if it was not neglected and only requires minimum renevations.
+```{r}
+houseCondModel <- lm(SalePrice ~ as.factor(Overall.Cond), data=iowaHousing)
+summary(houseCondModel)
+```
+```{r echo=FALSE}
+plot(SalePrice ~ as.factor(Overall.Cond), data = iowaHousing, xlab="Condition", ylab="House Price")
+```
+
+We can see a slight upward trend when looking at the relation of a home's condition and price. Once you get to the average condition there is a large range of different prices associated with it. This can be caused by the categorizing of each style of home since the average  can be different for lower and higher priced homes. 
+
+## Second Model
+
+Let's continue and add the house style. If a house has more than one story and is  finished, that might have an impact on the selling price. This can fix the issue presented when just comparing overall condition of the homes without haivng them categorized.
+```{r}
+styleCondModel <- lm(SalePrice ~ as.factor(Overall.Cond) + House.Style, data = iowaHousing)
+summary(styleCondModel)
+```
+```{r echo=FALSE}
+plot(SalePrice ~ House.Style, data = iowaHousing, xlab="Style", ylab="House Price")
+```
+
+We can see that the finished levels were slightly higher than the unfinished. Split foyer, 1.5 story unfinished, and split level didn't show significance in determining the cost of the house. Looking at the plot above, those three home styles don't show a large variability in price range. This seems to be a limiting factor as there aren't as many home styles for those categories to justifiy a price difference based on home style. 
+
+## Third Model
+The next model will add to the overall quality of the house. This is the quality of the materials used for the construction of the home. My assumption is the higher quality homes will lose a larger amount of value if their condition is poor.
+```{r}
+condStyleQualModel <- lm(SalePrice ~ as.factor(Overall.Cond) + House.Style + as.factor(Overall.Qual), 
+                    data = iowaHousing)
+summary(condStyleQualModel)
+```
+
+We can see that overall quality is significant for determining the price of the homes for home above poor quality. Once quality hits poor or very poor the price of the home is not significantly determined by the overall quality. There are a numerous amounts of factors that can adversely affect how poor quality homes can still maintain value, but the quality of homes above poor have a significant relation to the price.
+
+## Fourth Model
+This next model will remove the House style and see how that affects the predictors.
+```{r}
+condQualModel <- lm(SalePrice ~ as.factor(Overall.Cond) + as.factor(Overall.Qual), data = iowaHousing)
+summary(condQualModel)
+```
+```{r echo=FALSE}
+ggplot(data=iowaHousing,aes(as.factor(Overall.Cond), SalePrice) )+ facet_grid(.~Overall.Qual) + geom_boxplot() + labs(x = "Condition", y = "House Price") + ggtitle("House Price & Condition by Quality")
+```
+
+Overall quality seems to have a large amount of significance to the cost of the house. It does show the least significance on houses that are lower in quality. The plot shows the variability of lower quality homes staying below average conditions. As the quality of the homes increase there is a larger range in condition, but there is still an increase in price overall. Once the quality is at max the condition of homes don't fall bellow average. This shows how condition isn't a suitable predictor of house price.
+
+## Fifth Model
+Lets remove overall condition of the house since we saw how it didn't significantly affect the house value.
+```{r}
+qualModel <- lm(SalePrice ~ as.factor(Overall.Qual), data = iowaHousing)
+summary(qualModel)
+```
+
+We are significant to the standard of .05 with all except fair and poor quality. I'm fairly certain there is some factor that causes this random fluctuation in price for lower quality homes.
+
+### Revision
+Before we move on let's make a change to the overall quality column of our data since the variability is small for the homes for fair, poor, and very poor. Let's combine them into one labled "0" so anything falling beneath below average is considered bad for overall quality of a home.
+```{r}
+bad <- function(n){
+  if(n < 4) 0 else n
+}
+iowaHousing$Overall.Qual <- sapply(iowaHousing$Overall.Qual, bad) 
+```
+
+## Seventh Model
+I'm curious if the type of home can make a large impact of the price. Let's add building type to our model.
+```{r}
+qualTypeModel <- lm(SalePrice ~ as.factor(Overall.Qual) + Bldg.Type, data = iowaHousing)
+summary(qualTypeModel)
+```
+
+This is interesting to see that there is an interaction with our existing predictors. Let's view just building type in relation to price.
+```{r}
+houseTypeModel <- lm(SalePrice ~ Bldg.Type, data = iowaHousing)
+summary(houseTypeModel)
+```
+```{r echo=FALSE}
+plot(SalePrice ~ Bldg.Type, data=iowaHousing, xlab = "Building Type", ylab = "House Price")
+```
+
+It seems as though there is a difference in price in relation to building type. When our predictors are taken out the significance of a duplex building type increases and townhouse end unit decreases. There is a large amount of one family building types and this can make it more difficult to predict the price when the range is so large compared to the others.
+
+## Eighth Model
+The next thing I feel can affect house price would be the external quality of the home. 
+```{r}
+typeExModel <- lm(SalePrice ~ Bldg.Type + Exter.Qual + as.factor(Overall.Qual), data = iowaHousing)
+summary(typeExModel)
+```
+```{r echo=FALSE}
+swap <- function(x){
+  if(x == "Fa") "1-Fa"
+  else if(x == "TA") "2-TA"
+  else if(x == "Gd") "3-Gd" 
+  else "4-Ex"
+}
+iowaHousing$Exter.Qual <- sapply(iowaHousing$Exter.Qual, swap)
+plot(SalePrice ~ as.factor(Exter.Qual), data=iowaHousing, xlab = "External Quality", ylab = "House Price")
+```
+
+The external quality of the home seems to have a significant impact on the price of the home. Excellent is the highest, good is second, typical/average, and then fair. The better the quality the higher the price becomes. This is however another interaction. 
+
+## Ninth Model
+I'm going to remove the Building Type of the homes. Since building type and external quality were both interactions, let's remove the least siginificant of the two.
+```{r}
+exQualModel <- lm(SalePrice ~ Exter.Qual + as.factor(Overall.Qual), data = iowaHousing)
+summary(exQualModel)
+```
+
+
+## Tenth Model
+Let's add central air to our model. If this is not included it can be a large expense to add to a home that is already built.
+```{r}
+qualExAirModel <- lm(SalePrice ~ Exter.Qual + as.factor(Overall.Qual) + Central.Air, data = iowaHousing)
+summary(qualExAirModel)
+```
+```{r echo = FALSE}
+plot(SalePrice ~ Central.Air, data=iowaHousing, xlab = "Central Air", ylab = "Price")
+```
+
+The prescence of central Air does increase the value of the home.
+
+## Eleventh Model
+Let's add number of rooms to our model. We will use a function to seperate homes with five or less rooms and call them "Average". Homes with more than five rooms will be called "Excess"
+```{r}
+rooms <- function(n){
+  if(n <= 5) "Average" else ("Excess")
+}
+
+iowaHousing$TotRms.AbvGrd <- sapply(iowaHousing$TotRms.AbvGrd, rooms)
+
+qualExAirRoomModel <- lm(SalePrice ~ Exter.Qual + as.factor(Overall.Qual) + Central.Air + TotRms.AbvGrd, data = iowaHousing)
+summary(qualExAirRoomModel)
+```
+
+We can see the significance that the amount of rooms have on the price of the house.
+
+## Final Model
+With the models we have produced previously, it has led to the final model consisting of Overall Quality, External Quality, and Total Rooms Above Ground. 
+```{r}
+qualExRoomModel <- lm(SalePrice ~ Exter.Qual + as.factor(Overall.Qual) + TotRms.AbvGrd, data = iowaHousing)
+summary(qualExRoomModel)
+```
+```{r echo=FALSE}
+ggplot(data = iowaHousing, aes(as.factor(Overall.Qual), SalePrice)) + labs(x = "Overall Quality", y = "Price") + facet_grid(.~ TotRms.AbvGrd) + geom_boxplot()
+```
+
+These predictors are all significant to the standard of .05 and an adjusted R^2^ of 0.73. This adjusted R^2^ shows how close our predictors are to the fitted regression line of the data. We were at 73% variability to our data. The test statistic is 712.9 and the p-value is 2.2e-16
+```{r echo=FALSE}
+a <- qualExRoomModel$coefficients[1]
+b <- qualExRoomModel$coefficients[2]
+c <- qualExRoomModel$coefficients[3]
+d <- qualExRoomModel$coefficients[4]
+e <- qualExRoomModel$coefficients[5]
+f <- qualExRoomModel$coefficients[6]
+g <- qualExRoomModel$coefficients[7]
+h <- qualExRoomModel$coefficients[8]
+i <- qualExRoomModel$coefficients[9]
+j <- qualExRoomModel$coefficients[10]
+k <- qualExRoomModel$coefficients[11]
+l <- qualExRoomModel$coefficients[12]
+
+```
+$\widehat{PRICE} = `r round(a,2)` + `r round(b,2)`*Exter.Qual2TA + `r round(c,2)`*Exter.Qual3Gd +$
+$`r round(d,2)`*Exter.Qual4Ex + `r round(e,2)`*Overall.Qual4 + `r round(f,2)`*Overall.Qual5 +$
+$`r round(g,2)`*Overall.Qual6 + `r round(h,2)`*Overall.Qual7 + `r round(i,2)`*Overall.Qual8 +$
+$`r round(j,2)`*Overall.Qual9 + `r round(k,2)`*Overall.Qual10 + `r round(l,2)`*TotalRoomsExcess$
+
+For a house that has fair external quality, poor overall quality, and average total rooms the mean price will be `r round(a,2)`. When external quality is average Exter.Qual2TA becomes 1 leaving a mean price of `r round(a+b,2)`. If external quality is good Exter.Qual3Gd becomes 1 and the mean price is `r round(a+c,2)`.  If external quality is excellent Exter.Qual3Ex becomes 1 and the mean price is `r round(a+d,2)`. The mean price for a home that has an overall quality of below average is `r round(a+e,2)`. Overal.Qual4 becomes 1. The same holds true for all the overall qualities of the home. The home can only be categorized in one coefficient per predictor. For total rooms if the home has excess rooms, then TotalRoomsExcess becomes 1 and mean price becomes `r round(a+l,2)`. If a house has excellent external quality, below average overall quality, and excess tota rooms, the mean price of the house would be `r round(a+d+e+l,2)`. 
