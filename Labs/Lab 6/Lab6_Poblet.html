@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html><head></head><body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid main-container">
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="fluid-row">
+
+
+
+<h1 class="title toc-ignore">Lab6_Poblet</h1>
+<h4 class="author"><em>Marcel Poblet</em></h4>
+<h4 class="date"><em>October 27, 2016</em></h4>
+
+</div>
+
+
+<p>This report studies the “Law of Large Numbers”.</p>
+<div class="section level3">
+<h3>Set Seed</h3>
+<p>First we set a seed to ensure our data is reproducable. I chose my current Publix store number.</p>
+<pre class="r"><code>set.seed(519)</code></pre>
+</div>
+<div class="section level2">
+<h2>Create Random Samples</h2>
+<p>Use the runif method that retrieves random values from the uniform distribution set with a min and max.</p>
+<div class="section level3">
+<h3>Sample 1</h3>
+<p>Generate a sample of size 100 from the uniform distribution between 1 and 10, inclusive.</p>
+<pre class="r"><code>sample &lt;- runif(100, min = 1, max = 10)</code></pre>
+</div>
+<div class="section level3">
+<h3>Theoretical Uniform Distribution</h3>
+<p>Display the first quartile of the theoretical uniform distribution.</p>
+<pre class="r"><code>qunif(.25, min = 1, max = 10)</code></pre>
+<pre><code>## [1] 3.25</code></pre>
+</div>
+<div class="section level3">
+<h3>First Quartile of Sample 1</h3>
+<p>Display the first quartile of the sample you generated. Find the first quartile of the generated sample with quantile, using 0.25 to specifie the first quartile</p>
+<pre class="r"><code>quantile(sample, .25)</code></pre>
+<pre><code>##      25% 
+## 3.417356</code></pre>
+</div>
+<div class="section level3">
+<h3>Histogram of Sample 1</h3>
+<p>Create a histogram of the sample you generated.</p>
+<pre class="r"><code>hist(sample,xlim = c(0,10), freq = FALSE, xlab = &quot;&quot;, main = &quot;Sample of n=100&quot;)</code></pre>
+<p><img src="javascript://" width="672"/></p>
+</div>
+<div class="section level3">
+<h3>Sample 2</h3>
+<p>Generate a second sample of size 1000.</p>
+<pre class="r"><code>sample_Two &lt;- runif(1000, min = 1, max = 10)</code></pre>
+</div>
+<div class="section level3">
+<h3>First Quartile for Sample 2</h3>
+<p>Display the first quartile of your second sample.</p>
+<pre class="r"><code>quantile(sample_Two, .25)</code></pre>
+<pre><code>##      25% 
+## 3.182823</code></pre>
+</div>
+<div class="section level3">
+<h3>Histogram of Sample 2</h3>
+<p>Create a histogram of your second sample.</p>
+<pre class="r"><code>hist(sample_Two, xlim = c(0,10), freq = FALSE, xlab = &quot;&quot;, main = &quot;Sample of n=1000&quot;)</code></pre>
+<p><img src="javascript://" width="672"/></p>
+</div>
+<div class="section level3">
+<h3>Sample 3</h3>
+<p>Generate a third sample of size 10,000.</p>
+<pre class="r"><code>sample_Three &lt;- runif(10000, min = 1, max = 10)</code></pre>
+</div>
+<div class="section level3">
+<h3>First Quartile for Sample 3</h3>
+<p>Display the first quartile of your third sample.</p>
+<pre class="r"><code>quantile(sample_Three, .25)</code></pre>
+<pre><code>##      25% 
+## 3.290638</code></pre>
+</div>
+<div class="section level3">
+<h3>Histogram of Sample 3</h3>
+<p>Create a histogram of your third sample.</p>
+<pre class="r"><code>hist(sample_Three,xlim=c(0,10), freq = FALSE, xlab=&quot;&quot;, main=&quot;Sample, n=10000&quot;)</code></pre>
+<p><img src="javascript://" width="672"/></p>
+</div>
+<div class="section level3">
+<h3>Discussion</h3>
+<div class="section level4">
+<h4>1st Quartile Comparison</h4>
+<p>How did the first quartile of your 3 samples compare to each other and to the first quartile of the distribution from which they were drawn?</p>
+<p>The samples stayed close in value to eachother, and fluctuated near the theoretical uniform distribution. The larger the sample size, the closer the first quartile came to 3.25</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Sample</th>
+<th align="left">1st Quartile</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="left">3.42</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="left">3.18</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="left">3.29</td>
+</tr>
+<tr class="even">
+<td align="left">Theo.</td>
+<td align="left">3.25</td>
+</tr>
+</tbody>
+</table>
+<p>The chart displays the fluctuation of the first quratile of each sample in relation to the first quartile of the theoretical distribution. Sample one falls above by a difference of 0.17. Sample two below by 0.07, and sample three falls above by just 0.04.</p>
+</div>
+<div class="section level4">
+<h4>Histogram Comparison</h4>
+<p>How did the histograms of your 3 samples compare?</p>
+<p>As the sample size of each histogram increased, the graphs appeared more uniform.</p>
+</div>
+<div class="section level4">
+<h4>“Law of Large Numbers”</h4>
+<p>What does this law have to do with the tasks you have completed above?</p>
+<p>The “Law of Large Numbers” is what occured on our samples. As our sample size increases, it will converge with the expected value of 3.25 for the first quartile and holds true for the other quartiles aswell.</p>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<script type="text/javascript" src="/d2l/common/math/MathML.js?v=10.6.3.3283-173 "></script><script type="text/javascript">D2LMathML.DesktopInit('https://s.brightspace.com/lib/mathjax/2.6.1/MathJax.js?config=MML_HTMLorMML','https://s.brightspace.com/lib/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML');</script></body></html>

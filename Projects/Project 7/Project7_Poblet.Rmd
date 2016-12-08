@@ -1,0 +1,123 @@
+---
+title: "Project7_Poblet"
+author: "Marcel Poblet"
+date: "December 6, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(kernlab)
+library(caret)
+library(randomForest)
+weightLift <- read.csv("weightlift.csv")
+
+```
+
+## Weight Lifting
+
+We are going to be viewing a data set on weight lifting technique.The original data set includes a few variables we arent going to need. Lets remove column x, new_window, and num_window.
+```{r echo=FALSE}
+colnames(weightLift)  
+weightLift <- select(weightLift, -c(X, new_window, num_window))
+```
+
+This leaves us with the more relevant variables. The goal is to design a model that can predict the grade of technique used while performing a particular excersice based on the data collected through different devices.
+```{r echo=FALSE}
+colnames(weightLift)
+```
+
+### Training Options
+
+First let's set our training options so we use three fold cross-validation. 
+```{r}
+trainingOptions <- trainControl()
+trainingOptions$method="cv"
+trainingOptions$number=3
+```
+
+### Data Partitioning
+
+To effectively train our data it must be partitioned into a training set and a validation set to test how well it performs. We will use 40% of the data as training and 60% as validation.
+```{r}
+set.seed(519)
+inTraining <- createDataPartition(y=weightLift$classe, p=0.4, list=FALSE)
+trainingData <- weightLift[inTraining,]
+validationData <- weightLift[-inTraining,]
+```
+
+### Train and Build First Model
+
+The first model will be built using random forest with three fold cross-validation that we defined earlier with trainingOptions. 
+```{r, cache=TRUE, warning=FALSE, message=FALSE}
+rfModel <- train(classe ~ ., data = trainingData, method="rf", trControl=trainingOptions, prox=TRUE)
+rfModel
+```
+
+The results yielded `r max(rfModel$results$Accuracy)` Accuracy. 
+
+### Confusion Matrix
+
+Lets look at it in a better format.
+```{r, echo=FALSE}
+cm <- confusionMatrix(rfModel$finalModel$predicted,trainingData$classe)
+cm$table
+```
+
+We can see which preditcions were incorrect versus those that were correct.
+
+The overall accuracy was `r cm$overall[1]`
+
+Let's see the priority of each predictor.
+```{r, echo=FALSE}
+priority <- varImp(rfModel)
+print(priority)
+```
+
+To test our trained model we trim down our data and keep variables that made the most impact. Let's only test against the top 15 variables of our training set.
+```{r}
+sorting <- order(priority$importance$Overall,decreasing = TRUE)
+keep <- row.names(priority$importance)[sorting[1:15]]
+
+validationData <- validationData[,c(keep,"classe")]
+colnames(validationData)
+```
+
+### Partition Validation Set
+
+The validation set now includes the top 15 columns of our training set. Let's train against 60% of our validation set and test with the other 40%. 
+```{r}
+inTraining <- createDataPartition(y=validationData$classe, p=0.6, list = FALSE)
+trainingAgain <- validationData[inTraining,]
+testing <- validationData[-inTraining,]
+```
+
+## Train Second Model
+Retraining with the most significant predictors. 
+```{r cache=TRUE, warning=FALSE, message=FALSE}
+rfModel2 <- train(classe ~ ., data = trainingAgain, method="rf", trControl=trainingOptions)
+rfModel2
+```
+
+The results yielded `r max(rfModel2$results$Accuracy)` Accuracy. 
+
+### Final Model
+
+```{r, echo=FALSE}
+rfModel2$finalModel
+cm <- confusionMatrix(rfModel2$finalModel$predicted,trainingAgain$classe)
+```
+The final model shows our error rate, and which predictors it guessed versus what they actually were. The final in-sample accuracy was at `r cm$overall[1]`
+
+### Out of Sample Test
+Testing our model against the 40% test set.
+```{r}
+testPredict <- predict(rfModel2,testing)
+cm <- confusionMatrix(testPredict,testing$classe)
+cm$table
+```
+
+We can see we achieved an estimated accuracy of `r cm$overall[1]` for the out of sample test. In conclusion we built a model that was about `r cm$overall[1]` accurate and can predict how well a persons technique is during thier excersize. 
+
